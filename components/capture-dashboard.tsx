@@ -35,7 +35,7 @@ export function CaptureDashboard({ analysis, onNavigate, onProtocol }: { analysi
             </div>
           </div>
           <div className="mt-6 h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} initialDimension={{ width: 760, height: 280 }}>
               <AreaChart data={analysis.timeline} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
                 <defs><linearGradient id="traffic-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#22d3ee" stopOpacity={0.28} /><stop offset="100%" stopColor="#22d3ee" stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid stroke="rgba(148,163,184,.07)" vertical={false} />
@@ -51,7 +51,7 @@ export function CaptureDashboard({ analysis, onNavigate, onProtocol }: { analysi
         <article className="panel p-5 sm:p-6">
           <div><h2>Protocolos</h2><p>Clique para filtrar os pacotes relacionados</p></div>
           <div className="mt-4 grid grid-cols-[145px_1fr] items-center gap-4">
-            <div className="relative h-[150px] min-w-0"><ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}><PieChart><Pie data={analysis.protocols.slice(0, 6)} dataKey="packets" nameKey="name" innerRadius={48} outerRadius={66} paddingAngle={2} stroke="none">{analysis.protocols.slice(0, 6).map((item) => <Cell key={item.name} fill={item.color} />)}</Pie></PieChart></ResponsiveContainer><div className="pointer-events-none absolute inset-0 grid place-items-center text-center"><span><b className="block text-lg font-semibold text-slate-100">{analysis.protocols.length}</b><small className="text-[10px] uppercase tracking-wider text-slate-500">protocolos</small></span></div></div>
+            <div className="relative h-[150px] min-w-0"><ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} initialDimension={{ width: 145, height: 150 }}><PieChart><Pie data={analysis.protocols.slice(0, 6)} dataKey="packets" nameKey="name" innerRadius={48} outerRadius={66} paddingAngle={2} stroke="none">{analysis.protocols.slice(0, 6).map((item) => <Cell key={item.name} fill={item.color} />)}</Pie></PieChart></ResponsiveContainer><div className="pointer-events-none absolute inset-0 grid place-items-center text-center"><span><b className="block text-lg font-semibold text-slate-100">{analysis.protocols.length}</b><small className="text-[10px] uppercase tracking-wider text-slate-500">protocolos</small></span></div></div>
             <div className="space-y-2">{analysis.protocols.slice(0, 6).map((item) => <button key={item.name} onClick={() => onProtocol(item.name)} className="protocol-row"><span><i style={{ background: item.color }} />{item.name}</span><b>{Math.round(item.packets / Math.max(1, totalProtocols) * 100)}%</b></button>)}</div>
           </div>
         </article>
