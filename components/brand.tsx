@@ -2,14 +2,15 @@ import { Radar } from "lucide-react"
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="brand-mark"><Radar className="size-5" strokeWidth={1.8} /></span>
+    <span className="flex min-w-0 items-center gap-2">
+      <span className="brand-mark">
+        <Radar className="size-[18px]" strokeWidth={1.9} aria-hidden="true" />
+      </span>
       {!compact && (
-        <span className="leading-none">
-          <span className="block text-[15px] font-semibold tracking-[-0.02em] text-white">PacketLens</span>
-          <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">Network analysis</span>
+        <span className="truncate text-[15px] font-semibold tracking-[-0.01em] text-[var(--text)]">
+          PacketLens
         </span>
       )}
-    </div>
+    </span>
   )
 }

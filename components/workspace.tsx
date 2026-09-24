@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Activity, Binary, Clock3, Database, Download, FileText, Globe2, KeyRound, LayoutDashboard, LockKeyhole, Menu, Moon, Network, Radar, Search, Server, Settings2, ShieldAlert, Sun, Table2, Waypoints, X } from "lucide-react"
 import type { CaptureAnalysis } from "@/lib/capture-types"
+import { formatBytes, formatDuration, formatNumber } from "@/lib/format"
 import { Brand } from "@/components/brand"
 import { AnalysisView } from "@/components/analysis-views"
 import { CaptureDashboard } from "@/components/capture-dashboard"
@@ -42,37 +43,147 @@ export function Workspace({ analysis, onNewCapture, light, onTheme }: { analysis
   const [mobileOpen, setMobileOpen] = useState(false)
   const [title, description] = viewCopy[view] || [view, ""]
 
+  // The drawer covers the page behind a scrim, so it has to dismiss like one.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileOpen(false) }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [mobileOpen])
+
   const navigate = (next: string) => { setView(next); setMobileOpen(false) }
   const chooseProtocol = (value: string) => { setProtocol(value); setView("Packet Explorer") }
   const investigate = (term: string) => { setQuery(term); setProtocol("Todos"); setView("Packet Explorer") }
 
+  const captureFacts = [
+    formatBytes(analysis.fileSize),
+    `${formatNumber(analysis.packetCount)} pacotes`,
+    formatDuration(analysis.duration),
+    `analisada em ${analysis.analyzedAt}`,
+  ]
+
   return (
-    <main className="min-h-screen bg-[#080b11] text-slate-100 selection:bg-cyan-400/25">
-      <aside className={`app-sidebar ${mobileOpen ? "mobile-open" : ""}`}>
-        <div className="flex items-center justify-between px-2"><Brand /><button className="icon-button desktop-hide" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X className="size-4" /></button></div>
-        <nav className="mt-7 flex-1 overflow-y-auto pr-1">
-          {navigation.map((section) => <div className="mb-6" key={section.group}><p className="nav-group">{section.group}</p><div className="mt-2 space-y-1">{section.items.map((item) => <button key={item.label} onClick={() => navigate(item.label)} className={`nav-item ${view === item.label ? "active" : ""}`}><item.icon />{item.label}{item.label === "Security Insights" && analysis.alerts.length > 0 ? <span className="ml-auto rounded bg-amber-300/10 px-1.5 py-0.5 font-mono text-[9px] text-amber-300">{analysis.alerts.length}</span> : null}</button>)}</div></div>)}
-        </nav>
-        <div className="privacy-card"><LockKeyhole className="size-4 text-emerald-400" /><p>Processamento local</p><span>Nenhum pacote foi enviado.</span></div>
-      </aside>
-      {mobileOpen && <button className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar navegação" />}
-
-      <section className="min-h-screen lg:pl-[244px]">
-        <header className="app-header">
-          <button className="icon-button desktop-hide" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"><Menu className="size-4" /></button>
-          <div className="relative hidden flex-1 sm:block sm:max-w-lg"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-600" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Pesquisar IP, domínio, porta, protocolo..." className="h-10 border-white/[.07] bg-white/[.025] pl-10 pr-16 text-sm shadow-none placeholder:text-slate-600" /><kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-white/[.08] bg-white/[.03] px-1.5 py-1 font-mono text-[9px] text-slate-600">GLOBAL</kbd></div>
-          <div className="ml-auto flex items-center gap-2"><button className="icon-button" onClick={onTheme} aria-label="Alternar tema">{light ? <Moon className="size-4" /> : <Sun className="size-4" />}</button><Button variant="outline" size="sm" className="h-9 border-white/[.09] bg-white/[.025] text-slate-300 hover:bg-white/[.07] hover:text-white" onClick={onNewCapture}>Nova captura</Button></div>
-        </header>
-
-        <div className="mx-auto max-w-[1560px] px-4 py-5 sm:px-7 sm:py-7 xl:px-9">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div><div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.16em] text-slate-600"><span className="status-dot" /> Captura analisada <span className="text-slate-800">/</span> {analysis.fileName}</div><h1 className="text-2xl font-semibold tracking-[-.035em] text-slate-100 sm:text-[1.8rem]">{title}</h1><p className="mt-1.5 text-sm text-slate-500">{description}</p></div>
-            <div className="sm:hidden"><Select value={view} onValueChange={navigate}><SelectTrigger className="w-[210px] border-white/[.08] bg-white/[.025]"><SelectValue /></SelectTrigger><SelectContent>{navigation.flatMap((section) => section.items).map((item) => <SelectItem key={item.label} value={item.label}>{item.label}</SelectItem>)}</SelectContent></Select></div>
-          </div>
-          {query && view !== "Packet Explorer" && <div className="search-context mb-4"><Search className="size-3.5" /> Resultados filtrados por “{query}” <button onClick={() => setQuery("")}>Limpar</button></div>}
-          {view === "Dashboard" ? <CaptureDashboard analysis={analysis} onNavigate={navigate} onProtocol={chooseProtocol} /> : <AnalysisView view={view} analysis={analysis} query={query} protocol={protocol} setProtocol={setProtocol} onInvestigate={investigate} />}
+    <div className="shell">
+      <aside className={`sidebar ${mobileOpen ? "is-open" : ""}`} id="workspace-nav">
+        <div className="sidebar-head">
+          <Brand />
+          <button className="icon-button lg-hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar navegação">
+            <X className="size-4" />
+          </button>
         </div>
-      </section>
-    </main>
+        <nav className="sidebar-scroll" aria-label="Seções da análise">
+          {navigation.map((section) => (
+            <div key={section.group}>
+              <h2 className="nav-group">{section.group}</h2>
+              <ul className="space-y-0.5">
+                {section.items.map((item) => (
+                  <li key={item.label}>
+                    <button
+                      onClick={() => navigate(item.label)}
+                      className="nav-item"
+                      aria-current={view === item.label ? "page" : undefined}
+                    >
+                      <item.icon aria-hidden="true" />
+                      {item.label}
+                      {item.label === "Security Insights" && analysis.alerts.length > 0 ? (
+                        <span className="nav-count">
+                          {analysis.alerts.length}
+                          <span className="sr-only"> sinais</span>
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+        <p className="sidebar-foot flex items-start gap-2 text-xs leading-relaxed text-[var(--text-muted)]">
+          <LockKeyhole className="mt-0.5 size-3.5 shrink-0 text-[var(--ok)]" aria-hidden="true" />
+          Processamento local. Nenhum pacote foi enviado.
+        </p>
+      </aside>
+
+      {mobileOpen && (
+        <button
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-label="Fechar navegação"
+        />
+      )}
+
+      <div className="min-h-screen lg:pl-[240px]">
+        <div className="workspace-header">
+          <header className="topbar">
+            <button
+              className="icon-button lg-hidden"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Abrir navegação"
+              aria-expanded={mobileOpen}
+              aria-controls="workspace-nav"
+            >
+              <Menu className="size-4" />
+            </button>
+            <div className="relative min-w-0 flex-1 sm:max-w-md">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-[var(--text-faint)]" aria-hidden="true" />
+              <Input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="Filtrar por IP, domínio, porta ou protocolo"
+                placeholder="Filtrar por IP, domínio, porta, protocolo"
+                className="h-8 bg-[var(--surface-raised)] pl-8 text-sm"
+              />
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <button className="icon-button" onClick={onTheme} aria-label={light ? "Usar tema escuro" : "Usar tema claro"}>
+                {light ? <Moon className="size-4" /> : <Sun className="size-4" />}
+              </button>
+              <Button variant="outline" size="sm" onClick={onNewCapture}>Nova captura</Button>
+            </div>
+          </header>
+
+          <p className="capture-bar">
+            <span className="mono max-w-full truncate font-medium text-[var(--text)]" title={analysis.fileName}>{analysis.fileName}</span>
+            {captureFacts.map((fact) => (
+              <span key={fact} className="num">{fact}</span>
+            ))}
+          </p>
+        </div>
+
+        <main className="mx-auto max-w-[1600px] px-3 py-5 sm:px-5 sm:py-6">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-[1.375rem] font-semibold tracking-[-0.02em] text-[var(--text)]">{title}</h1>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">{description}</p>
+            </div>
+            <div className="lg:hidden">
+              <Select value={view} onValueChange={navigate}>
+                <SelectTrigger className="h-8 w-[200px] bg-[var(--surface)]" aria-label="Trocar de seção">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {navigation.flatMap((section) => section.items).map((item) => (
+                    <SelectItem key={item.label} value={item.label}>{item.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {query && view !== "Packet Explorer" && (
+            <p className="filter-banner mb-4">
+              <Search aria-hidden="true" />
+              Filtrando por <span className="mono filter-term font-medium" title={query}>{query}</span>
+              <button className="link-button ml-auto" onClick={() => setQuery("")}>Limpar filtro</button>
+            </p>
+          )}
+
+          {view === "Dashboard"
+            ? <CaptureDashboard analysis={analysis} onNavigate={navigate} onProtocol={chooseProtocol} />
+            : <AnalysisView view={view} analysis={analysis} query={query} protocol={protocol} setProtocol={setProtocol} onInvestigate={investigate} />}
+        </main>
+      </div>
+    </div>
   )
 }
