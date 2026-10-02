@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
@@ -36,7 +38,11 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
 /dist/
+/build/
+/graphify-out/
 /.wrangler/
 # Checkout-local execution profile and tool state; never publish them.
 /.sites-runtime/
@@ -47,3 +53,4 @@ next-env.d.ts
 
 # Checkout-local tool state
 /.claude/
+tests/fixtures/captures/

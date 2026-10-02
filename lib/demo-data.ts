@@ -19,6 +19,8 @@ const packetSeeds = [
   ["192.168.1.20", "93.184.216.34", "HTTP", 489, "GET /status HTTP/1.1"],
 ] as const
 
+const demoStart = Date.UTC(2026, 8, 18, 17, 33, 12) / 1000
+
 const packets: PacketRecord[] = Array.from({ length: 48 }, (_, index) => {
   const seed = packetSeeds[index % packetSeeds.length]
   const [source, destination, protocol, length, info] = seed
@@ -27,11 +29,14 @@ const packets: PacketRecord[] = Array.from({ length: 48 }, (_, index) => {
   return {
     no: index + 1,
     timestamp: `14:33:${String(second).padStart(2, "0")}.${String(elapsedMs % 1000).padStart(3, "0")}`,
+    epoch: demoStart + elapsedMs / 1000,
+    relativeTime: elapsedMs / 1000,
     source,
     destination,
     sourcePort: protocol === "DNS" ? (source === "1.1.1.1" ? 53 : 53042) : 51234 + (index % 8),
     destinationPort: protocol === "DNS" ? (destination === "1.1.1.1" ? 53 : 53042) : protocol === "HTTP" ? 80 : 443,
     protocol,
+    transport: protocol === "DNS" ? "UDP" : protocol === "ICMP" ? "ICMP" : "TCP",
     length,
     info,
     layers: [
@@ -50,6 +55,8 @@ export const demoAnalysis: CaptureAnalysis = {
   packetCount: 126_430,
   totalBytes: 2_576_980_377,
   duration: 1112,
+  firstEpoch: demoStart,
+  lastEpoch: demoStart + 1112,
   protocols: [
     { name: "TCP", packets: 77_122, bytes: 1_640_000_000, color: protocolColors.TCP },
     { name: "UDP", packets: 26_550, bytes: 412_000_000, color: protocolColors.UDP },
@@ -65,16 +72,16 @@ export const demoAnalysis: CaptureAnalysis = {
     connections: [12, 15, 18, 16, 21, 29, 86, 112, 75, 34, 29, 44, 31, 26, 35, 42, 54, 38, 25, 22, 29, 31, 20, 14][i],
   })),
   hosts: [
-    { ip: "192.168.1.20", hostname: "ops-workstation", sentPackets: 43_240, receivedPackets: 51_034, sentBytes: 682_000_000, receivedBytes: 920_000_000, connections: 418 },
-    { ip: "192.168.1.25", hostname: "build-runner", sentPackets: 19_820, receivedPackets: 12_404, sentBytes: 338_000_000, receivedBytes: 210_000_000, connections: 356 },
-    { ip: "142.250.218.14", hostname: "edge.google.com", sentPackets: 18_290, receivedPackets: 15_330, sentBytes: 430_000_000, receivedBytes: 190_000_000, connections: 126 },
-    { ip: "192.168.1.35", hostname: "finance-laptop", sentPackets: 8_440, receivedPackets: 10_662, sentBytes: 126_000_000, receivedBytes: 254_000_000, connections: 92 },
-    { ip: "1.1.1.1", hostname: "one.one.one.one", sentPackets: 5_294, receivedPackets: 7_840, sentBytes: 18_000_000, receivedBytes: 12_000_000, connections: 53 },
+    { ip: "192.168.1.20", hostname: "ops-workstation", scope: "Privado", vendor: "Hewlett Packard", sentPackets: 43_240, receivedPackets: 51_034, sentBytes: 682_000_000, receivedBytes: 920_000_000, connections: 418 },
+    { ip: "192.168.1.25", hostname: "build-runner", scope: "Privado", sentPackets: 19_820, receivedPackets: 12_404, sentBytes: 338_000_000, receivedBytes: 210_000_000, connections: 356 },
+    { ip: "142.250.218.14", hostname: "edge.google.com", scope: "Público", sentPackets: 18_290, receivedPackets: 15_330, sentBytes: 430_000_000, receivedBytes: 190_000_000, connections: 126 },
+    { ip: "192.168.1.35", hostname: "finance-laptop", scope: "Privado", sentPackets: 8_440, receivedPackets: 10_662, sentBytes: 126_000_000, receivedBytes: 254_000_000, connections: 92 },
+    { ip: "1.1.1.1", hostname: "one.one.one.one", scope: "Público", sentPackets: 5_294, receivedPackets: 7_840, sentBytes: 18_000_000, receivedBytes: 12_000_000, connections: 53 },
   ],
   conversations: [
-    { id: "conv-1", source: "192.168.1.20", destination: "142.250.218.14", sourcePort: 51234, destinationPort: 443, protocol: "TCP", packets: 12_431, bytes: 34_000_000, start: "14:32:04", duration: 14.2 },
-    { id: "conv-2", source: "192.168.1.25", destination: "1.1.1.1", sourcePort: 53042, destinationPort: 53, protocol: "UDP", packets: 8_450, bytes: 12_800_000, start: "14:33:39", duration: 60.8 },
-    { id: "conv-3", source: "192.168.1.35", destination: "13.107.42.14", sourcePort: 54081, destinationPort: 443, protocol: "TCP", packets: 6_920, bytes: 92_600_000, start: "14:34:06", duration: 188.4 },
+    { id: "conv-1", source: "192.168.1.20", destination: "142.250.218.14", sourcePort: 51234, destinationPort: 443, protocol: "TCP", application: "TLS", packets: 12_431, bytes: 34_000_000, start: "14:32:04", startEpoch: demoStart, endEpoch: demoStart + 14.2, duration: 14.2 },
+    { id: "conv-2", source: "192.168.1.25", destination: "1.1.1.1", sourcePort: 53042, destinationPort: 53, protocol: "UDP", application: "DNS", packets: 8_450, bytes: 12_800_000, start: "14:33:39", startEpoch: demoStart + 87, endEpoch: demoStart + 147.8, duration: 60.8 },
+    { id: "conv-3", source: "192.168.1.35", destination: "13.107.42.14", sourcePort: 54081, destinationPort: 443, protocol: "TCP", application: "TLS", packets: 6_920, bytes: 92_600_000, start: "14:34:06", startEpoch: demoStart + 114, endEpoch: demoStart + 302.4, duration: 188.4 },
     { id: "conv-4", source: "10.0.0.44", destination: "192.168.1.1", sourcePort: 0, destinationPort: 0, protocol: "ICMP", packets: 2_529, bytes: 13_980_377, start: "14:32:18", duration: 1002.1 },
     { id: "conv-5", source: "192.168.1.20", destination: "93.184.216.34", sourcePort: 51912, destinationPort: 80, protocol: "TCP", packets: 1_240, bytes: 4_720_000, start: "14:35:28", duration: 9.7 },
   ],
@@ -94,8 +101,10 @@ export const demoAnalysis: CaptureAnalysis = {
   ],
   packets,
   alerts: [
-    { id: "a1", severity: "Alta", title: "Muitas portas em pouco tempo", description: "O host iniciou conexões para 86 portas distintas do mesmo destino em 42 segundos.", source: "192.168.1.25", destination: "10.0.0.18", time: "14:33:12", evidence: "116 tentativas · 86 portas", reason: "Possível atividade de varredura de portas. O padrão merece investigação; não confirma um ataque." },
-    { id: "a2", severity: "Média", title: "Frequência DNS acima do habitual", description: "Foram observadas 845 consultas para o mesmo domínio em aproximadamente 60 segundos.", source: "192.168.1.25", destination: "1.1.1.1", time: "14:33:41", evidence: "14,1 consultas/s", reason: "Aplicações legítimas, atualizações e automações também podem produzir esse padrão." },
-    { id: "a3", severity: "Baixa", title: "Comunicação periódica", description: "Conexões pequenas ocorreram em intervalos regulares de aproximadamente 30 segundos.", source: "192.168.1.35", destination: "13.107.42.14", time: "14:34:18", evidence: "20 intervalos · desvio 1,8s", reason: "Possível comportamento periódico / beaconing. Compare com o software instalado." },
+    { id: "a1", ruleId: "port-scan", category: "Reconhecimento", severity: "Alta", confidence: "Alta", title: "Muitas portas em pouco tempo", description: "O host iniciou conexões para 86 portas distintas do mesmo destino em 42 segundos.", source: "192.168.1.25", destination: "10.0.0.18", time: "14:33:12", startEpoch: demoStart, evidence: "116 tentativas · 86 portas", observed: "86 portas", threshold: "≥ 20 portas", reason: "Possível atividade de varredura de portas. O padrão merece investigação; não confirma um ataque.", filter: { addresses: ["192.168.1.25", "10.0.0.18"] } },
+    { id: "a2", ruleId: "dns-rate", category: "DNS", severity: "Média", confidence: "Média", title: "Frequência DNS acima do habitual", description: "Foram observadas 845 consultas para o mesmo domínio em aproximadamente 60 segundos.", source: "192.168.1.25", destination: "1.1.1.1", time: "14:33:41", startEpoch: demoStart + 29, evidence: "14,1 consultas/s", observed: "14,1 consultas/s", threshold: "≥ 10 consultas/s", reason: "Aplicações legítimas, atualizações e automações também podem produzir esse padrão.", filter: { addresses: ["192.168.1.25"], domains: ["cdn-assets.net"], protocols: ["DNS"] } },
+    { id: "a3", ruleId: "periodic-connections", category: "Comportamento", severity: "Baixa", confidence: "Média", title: "Comunicação periódica", description: "Conexões pequenas ocorreram em intervalos regulares de aproximadamente 30 segundos.", source: "192.168.1.35", destination: "13.107.42.14", time: "14:34:18", startEpoch: demoStart + 66, evidence: "20 intervalos · desvio 1,8s", observed: "CV 6%", threshold: "CV < 15%", reason: "Possível comportamento periódico / beaconing. Compare com o software instalado.", filter: { addresses: ["192.168.1.35", "13.107.42.14"] } },
   ],
+  tcpHealth: { syn: 932, synAck: 901, resets: 34, retransmissions: 187, incompleteHandshakes: 31 },
+  metadata: { parserVersion: "2.0.0-demo", streamed: true, linkTypes: [1], interfaces: 1, retainedPackets: packets.length, packetLimit: 20_000, unsupportedPackets: 14, malformedPackets: 0, warnings: ["Amostra de demonstração: 48 pacotes retidos de um total declarado de 126.430."] },
 }

@@ -83,6 +83,34 @@ export function usePage<T>(rows: T[]): { visible: T[]; paging: Paging } {
   }
 }
 
+/** Stepping one page at a time is unusable at 100+ pages, so the page number
+ *  is an input. It commits on Enter or blur and remounts (via `key`) whenever
+ *  the page changes from elsewhere. */
+function PageJump({ page, pages, setPage }: { page: number; pages: number; setPage: (page: number) => void }) {
+  const commit = (raw: string) => {
+    const next = Number.parseInt(raw, 10)
+    if (Number.isNaN(next)) return
+    setPage(Math.min(pages, Math.max(1, next)))
+  }
+  return (
+    <span className="page-jump">
+      <span aria-hidden="true">Página</span>
+      <input
+        key={page}
+        type="number"
+        inputMode="numeric"
+        defaultValue={page}
+        min={1}
+        max={pages}
+        aria-label={`Página atual, de 1 a ${pages}`}
+        onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commit(event.currentTarget.value) } }}
+        onBlur={(event) => commit(event.target.value)}
+      />
+      <span aria-hidden="true">de {formatNumber(pages)}</span>
+    </span>
+  )
+}
+
 export function Pager({ paging, label }: { paging: Paging; label: string }) {
   const { page, pages, start, shown, total, setPage } = paging
   if (pages <= 1) {
@@ -93,8 +121,8 @@ export function Pager({ paging, label }: { paging: Paging; label: string }) {
       <span>
         {formatNumber(start + 1)}–{formatNumber(start + shown)} de {formatNumber(total)} {label}
       </span>
-      <span className="flex items-center gap-2">
-        <span className="text-[var(--text-faint)]">Página {page} de {pages}</span>
+      <span className="flex flex-wrap items-center gap-2">
+        <PageJump page={page} pages={pages} setPage={setPage} />
         <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>Anterior</Button>
         <Button variant="outline" size="sm" disabled={page === pages} onClick={() => setPage(page + 1)}>Próxima</Button>
       </span>

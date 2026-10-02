@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // PacketLens build/tool artifacts (see .gitignore):
+    "dist/**",
+    "graphify-out/**",
+    ".vinext/**",
+    ".wrangler/**",
+    ".sites-runtime/**",
+    "coverage/**",
   ]),
   {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
