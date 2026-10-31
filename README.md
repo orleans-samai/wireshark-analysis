@@ -18,7 +18,6 @@ Analisador local de capturas de rede (`.pcap` / `.pcapng`) no navegador. Nenhum 
 - `npm run verify:corpus -- pasta` — valida em lote um corpus autorizado e anonimizado
 - `npm run bench:capture -- arquivo.pcap 3 --min-mbps 100 --max-memory-mb 256` — mede desempenho e pode bloquear regressões
 - `npm run check` — `tsc --noEmit` + `eslint .`
-- `npm run db:generate` — gerar migrations Drizzle (recurso D1 opcional do starter)
 
 Sem uma captura à mão, abra **"Abrir uma análise de exemplo"** na tela inicial.
 
