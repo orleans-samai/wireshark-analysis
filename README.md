@@ -14,13 +14,15 @@ Nenhum pacote sai da sua máquina: o arquivo é lido em blocos dentro de um Web 
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![Playwright](https://img.shields.io/badge/Testes-Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Licença MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow?style=for-the-badge)](LICENSE)
 
 [Sobre](#-sobre) •
 [Funcionalidades](#-funcionalidades) •
 [Tecnologias](#-tecnologias) •
 [Como executar](#-como-executar) •
 [Scripts](#-scripts-disponíveis) •
-[Estrutura](#-estrutura-do-projeto)
+[Estrutura](#-estrutura-do-projeto) •
+[Licença](#-licença)
 
 </div>
 
@@ -110,8 +112,6 @@ npx playwright install chromium
 | `npm run verify:capture -- arquivo.pcap --strict` | Compara contagem, hosts, DNS, SNI e protocolos com o TShark local |
 | `npm run verify:corpus -- pasta` | Valida em lote um corpus de capturas autorizado e anonimizado |
 | `npm run bench:capture -- arquivo.pcap 3 --min-mbps 100 --max-memory-mb 256` | Mede desempenho e pode bloquear regressões |
-| `npm run db:generate` | Gera migrations Drizzle (recurso D1 opcional, não usado hoje) |
-
 ---
 
 ## 🔧 Opções do analisador
@@ -152,6 +152,12 @@ wireshark-analysis/
 ## 🔒 Privacidade
 
 Todo o processamento é local. Casos, referências de evidência, triagens e resumos históricos por ativo ficam no IndexedDB do navegador; o conteúdo bruto da captura **nunca** é armazenado. A aplicação envia uma Content Security Policy restritiva e não carrega serviços externos.
+
+---
+
+## 📄 Licença
+
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
 
 ---
 
