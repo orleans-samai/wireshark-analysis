@@ -58,3 +58,7 @@ Todo o processamento é local. Casos, referências de evidência, triagens e res
 ## Deploy (Sites/Cloudflare)
 
 Segue o ciclo de vida do starter Vinext: `npm run build` gera `dist/server/wrangler.json`; `npm start` serve localmente via Wrangler. D1/R2 em `.openai/hosting.json` são opcionais e não são usados pelo PacketLens hoje.
+
+## Licença
+
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
